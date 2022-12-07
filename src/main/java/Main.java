@@ -7,32 +7,15 @@
  *
  */
 import java.util.Iterator;
+import java.util.List;
 import java.util.Scanner;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
-import com.amazonaws.services.ec2.model.DescribeInstancesResult;
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.Reservation;
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
-import com.amazonaws.services.ec2.model.DescribeRegionsResult;
-import com.amazonaws.services.ec2.model.Region;
-import com.amazonaws.services.ec2.model.AvailabilityZone;
-import com.amazonaws.services.ec2.model.DryRunSupportedRequest;
-import com.amazonaws.services.ec2.model.StopInstancesRequest;
-import com.amazonaws.services.ec2.model.StartInstancesRequest;
-import com.amazonaws.services.ec2.model.InstanceType;
-import com.amazonaws.services.ec2.model.RunInstancesRequest;
-import com.amazonaws.services.ec2.model.RunInstancesResult;
-import com.amazonaws.services.ec2.model.RebootInstancesRequest;
-import com.amazonaws.services.ec2.model.RebootInstancesResult;
-import com.amazonaws.services.ec2.model.DescribeImagesRequest;
-import com.amazonaws.services.ec2.model.DescribeImagesResult;
-import com.amazonaws.services.ec2.model.Image;
-import com.amazonaws.services.ec2.model.Filter;
+import com.amazonaws.services.ec2.model.*;
 
 public class Main {
 
@@ -75,6 +58,7 @@ public class Main {
             System.out.println("  3. start instance               4. available regions      ");
             System.out.println("  5. stop instance                6. create instance        ");
             System.out.println("  7. reboot instance              8. list images            ");
+            System.out.println("  9. print latest console                                   ");
             System.out.println("                                 99. quit                   ");
             System.out.println("------------------------------------------------------------");
 
@@ -142,6 +126,15 @@ public class Main {
 
                 case 8:
                     listImages();
+                    break;
+
+                case 9:
+                    System.out.print("Enter instance id: ");
+                    if(id_string.hasNext())
+                        instance_id = id_string.nextLine();
+
+                    if(!instance_id.isBlank())
+                        printLatestConsole(instance_id);
                     break;
 
                 case 99:
@@ -340,6 +333,17 @@ public class Main {
                     images.getImageId(), images.getName(), images.getOwnerId());
         }
 
+    }
+
+    public static void printLatestConsole(String instanceId){
+        System.out.println("Print Latest Console Output....");
+        EnableSerialConsoleAccessRequest request = new EnableSerialConsoleAccessRequest();
+        ec2.enableSerialConsoleAccess(request);
+        GetConsoleOutputRequest consoleRequest = new GetConsoleOutputRequest().withInstanceId(instanceId);
+        GetConsoleOutputResult consoleOutput = ec2.getConsoleOutput(consoleRequest);
+        String output = consoleOutput.getOutput();
+        System.out.println("output = " + output);
+        System.out.println("Successfully enabled monitoring for instance " + instanceId);
     }
 }
 
